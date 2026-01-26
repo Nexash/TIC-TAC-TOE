@@ -12,12 +12,20 @@ class TicTacToe extends StatefulWidget {
 class _TicTacToeState extends State<TicTacToe> {
   List<bool> isclicked = List.generate(9, (_) => false);
   List<String?> values = List.generate(9, (_) => null);
-  bool isZeroTurn = true;
-  String? a = "";
-  String? b = "";
+  List<int> moveOrder = []; // stores indexes in the order they were clicked
+
+  bool isTurnOf = true;
+  String? player1 = "";
+  String? player2 = "";
+  String? switchTurn;
   String? turn = "";
   String? winner;
+  String? firstMove;
+
   bool winnercheck = false;
+  int xCount = 0;
+  int oCount = 0;
+
   List<int> drawLine = List.generate(9, (index) => index); // all cells
   bool draw = false;
   List<int>? winningLine;
@@ -33,6 +41,13 @@ class _TicTacToeState extends State<TicTacToe> {
     [0, 4, 8],
     [2, 4, 6],
   ];
+  void UpdateWinnerCount() {
+    if (winner == "X") {
+      xCount++;
+    } else if (winner == "O") {
+      oCount++;
+    }
+  }
 
   void showSymbolDialog() {
     showDialog(
@@ -40,14 +55,14 @@ class _TicTacToeState extends State<TicTacToe> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Choose your symbol"),
+          title: const Text("Choose 1st player"),
           actions: [
             TextButton(
               onPressed: () {
                 setState(() {
-                  a = "X";
-                  b = "O";
-                  turn = a;
+                  player1 = "X";
+                  player2 = "O";
+                  turn = player1;
                   gameStarted = true;
                 });
                 Navigator.pop(context);
@@ -57,9 +72,9 @@ class _TicTacToeState extends State<TicTacToe> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  a = "O";
-                  b = "X";
-                  turn = a;
+                  player1 = "O";
+                  player2 = "X";
+                  turn = player1;
                   gameStarted = true;
                 });
                 Navigator.pop(context);
@@ -76,19 +91,19 @@ class _TicTacToeState extends State<TicTacToe> {
     if (winner != null) {
       return Center(
         child: Text(
-          winnercheck ? "Congratulations $winner" : "",
+          "Congratulations $winner",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       );
     } else if (draw) {
       return Center(
         child: Text(
-          draw ? "Its A Draw" : "",
+          "Its A Draw",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       );
     }
-    return Text("");
+    return SizedBox();
   }
 
   // grid = ["0", "0", "0", null, "X", null, null, null, "X"]
@@ -103,7 +118,7 @@ class _TicTacToeState extends State<TicTacToe> {
         winningLine = line;
         log("$winningLine");
         log("${grid[a]} is the winner");
-        winnercheck = true;
+        // winnercheck = true;
         return grid[a];
       }
     }
@@ -111,30 +126,30 @@ class _TicTacToeState extends State<TicTacToe> {
     return null;
   }
 
-  void drawDialogue() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("DRAW"),
-          content: Text("That was tough round!!!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  isclicked = List.generate(9, (_) => false);
-                  values = List.generate(9, (_) => null);
-                  winner = "";
-                });
-                Navigator.of(context).pop();
-              },
-              child: Center(child: Text("Play Again")),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void drawDialogue() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text("DRAW"),
+  //         content: Text("That was tough round!!!"),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 isclicked = List.generate(9, (_) => false);
+  //                 values = List.generate(9, (_) => null);
+  //                 winner = "";
+  //               });
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Center(child: Text("Play Again")),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   // void winnerDialogue() {
   //   showDialog(
@@ -173,6 +188,20 @@ class _TicTacToeState extends State<TicTacToe> {
 
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Player (X) - $xCount ",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "$oCount - Player (O)  ",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
               Center(
                 child: Text(
                   "TIC TAC TOE",
@@ -217,29 +246,71 @@ class _TicTacToeState extends State<TicTacToe> {
                                   splashColor: Colors.transparent,
                                   highlightColor: Colors.transparent,
                                   onTap:
-                                      isclicked[index] ||
-                                              winner !=
-                                                  null //it gives false so null is not selected on second click the response is true so it selects null
+                                      winner != null ||
+                                              draw //it gives false so null is not selected on second click the response is true so it selects null
                                           ? null
                                           : () {
+                                            if (values[index] != null) {
+                                              return;
+                                            }
                                             setState(() {
-                                              values[index] =
-                                                  isZeroTurn ? a : b;
-                                              isZeroTurn = !isZeroTurn;
-                                              isclicked[index] =
-                                                  !isclicked[index];
+                                              // If the cell is empty, normal click
+                                              if (values[index] == null) {
+                                                values[index] =
+                                                    isTurnOf
+                                                        ? player1
+                                                        : player2;
+                                                isclicked[index] = true;
+                                                moveOrder.add(index);
+                                                switchTurn ??= values[index];
+                                              }
+
+                                              // If the grid is full, remove the oldest move
+                                              // else if (moveOrder.length >= 7) {
+                                              //   int oldest = moveOrder.removeAt(
+                                              //     0,
+                                              //   );
+                                              //   values[oldest] = null;
+                                              //   isclicked[oldest] = false;
+
+                                              //   // Place the new move
+                                              //   values[index] =
+                                              //       isTurnOf
+                                              //           ? player1
+                                              //           : player2;
+                                              //   isclicked[index] = true;
+                                              //   moveOrder.add(index);
+                                              // }
+
+                                              // Toggle turn
+                                              isTurnOf = !isTurnOf;
+                                              turn =
+                                                  isTurnOf ? player1 : player2;
+
+                                              // // first move save to toggle later
+                                              firstMove =
+                                                  firstMove ?? values[index];
+
+                                              // Check winner
                                               winner = checkWinner(
                                                 values,
                                                 winningLines,
                                               );
-                                              turn = isZeroTurn ? a : b;
+                                              // update points
+                                              if (winner != null &&
+                                                  !winnercheck) {
+                                                UpdateWinnerCount();
+                                                winnercheck = true;
+                                              }
+
+                                              // Check for draw (optional, though rolling grid may rarely be a draw)
+                                              if (winner == null &&
+                                                  values.every(
+                                                    (v) => v != null,
+                                                  )) {
+                                                draw = true;
+                                              }
                                             });
-                                            if (winner == null &&
-                                                values.every(
-                                                  (v) => v != null,
-                                                )) {
-                                              draw = true;
-                                            }
                                           },
                                   child: Center(
                                     child: Text(
@@ -273,23 +344,33 @@ class _TicTacToeState extends State<TicTacToe> {
                 ],
               ),
 
-              SizedBox(height: 20),
               displayResult(),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
+                    // here we clear the board
                     isclicked = List.generate(9, (_) => false);
                     values = List.generate(9, (_) => null);
+                    moveOrder.clear();
                     winner = null;
                     winningLine = [];
                     winnercheck = false;
                     draw = false;
-                    turn = "";
-                    a = "";
-                    b = "";
 
-                    gameStarted = false;
+                    // Decide who starts next round based on last roundStarter
+                    if (switchTurn == player1) {
+                      // If player1 started last round, player2 starts this round
+                      isTurnOf = false;
+                      turn = player2;
+                    } else {
+                      // If player2 started last round, player1 starts this round
+                      isTurnOf = true;
+                      turn = player1;
+                    }
+                    switchTurn = null;
+
+                    // gameStarted = true;
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -300,7 +381,39 @@ class _TicTacToeState extends State<TicTacToe> {
                   ),
                 ),
                 child: Text(
-                  "Restart Gane",
+                  "Next Round",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    isclicked = List.generate(9, (_) => false);
+                    values = List.generate(9, (_) => null);
+                    winner = null;
+                    moveOrder.clear();
+                    winningLine = [];
+                    winnercheck = false;
+                    draw = false;
+                    turn = "";
+                    player1 = "";
+                    player2 = "";
+                    isTurnOf = true;
+                    gameStarted = false;
+                    xCount = 0;
+                    oCount = 0;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF41644A),
+                  fixedSize: Size(50, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  "Restart Game",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
