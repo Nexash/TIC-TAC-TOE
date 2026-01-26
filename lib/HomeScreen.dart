@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tik_tac_toe/bestofthreeXO.dart';
+import 'package:tik_tac_toe/BestOfThree/bestofthreeXO.dart';
 import 'package:tik_tac_toe/normalXO.dart';
 
 class Homescreen extends StatefulWidget {
