@@ -25,6 +25,7 @@ class _TicTacToeState extends State<TicTacToe> {
   bool winnercheck = false;
   int xCount = 0;
   int oCount = 0;
+  int drawCount = 0;
 
   List<int> drawLine = List.generate(9, (index) => index); // all cells
   bool draw = false;
@@ -41,11 +42,31 @@ class _TicTacToeState extends State<TicTacToe> {
     [0, 4, 8],
     [2, 4, 6],
   ];
-  void UpdateWinnerCount() {
+
+  void updateWinnerCount() {
     if (winner == "X") {
       xCount++;
     } else if (winner == "O") {
       oCount++;
+    }
+    if (xCount == 2) {
+      winnerDialogue("X");
+    } else if (oCount == 2) {
+      winnerDialogue("O");
+    }
+    if (drawCount == 3) {
+      drawDialogue();
+    }
+    if (xCount == 1 && oCount == 1 && drawCount == 1) {
+      drawDialogue();
+    }
+    if (drawCount == 2) {
+      if (xCount == 0 && oCount == 1) {
+        winnerDialogue("O");
+      }
+      if (oCount == 0 && xCount == 1) {
+        winnerDialogue("X");
+      }
     }
   }
 
@@ -126,55 +147,79 @@ class _TicTacToeState extends State<TicTacToe> {
     return null;
   }
 
-  // void drawDialogue() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text("DRAW"),
-  //         content: Text("That was tough round!!!"),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 isclicked = List.generate(9, (_) => false);
-  //                 values = List.generate(9, (_) => null);
-  //                 winner = "";
-  //               });
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Center(child: Text("Play Again")),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
+  void drawDialogue() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("DRAW"),
+          content: Text("That was tough round!!!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  isclicked = List.generate(9, (_) => false);
+                  values = List.generate(9, (_) => null);
+                  winner = null;
+                  moveOrder.clear();
+                  winningLine = [];
+                  winnercheck = false;
+                  draw = false;
+                  turn = "";
+                  player1 = "";
+                  player2 = "";
+                  isTurnOf = true;
+                  gameStarted = false;
+                  xCount = 0;
+                  oCount = 0;
+                  drawCount = 0;
+                });
+                Navigator.of(context).pop();
+              },
+              child: Center(child: Text("Play Again")),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-  // void winnerDialogue() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text("GAME OVER"),
-  //         content: Text("$winner is the Winner !!!!"),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 isclicked = List.generate(9, (_) => false);
-  //                 values = List.generate(9, (_) => null);
-  //                 winner = "";
-  //               });
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Center(child: Text("Play Again")),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
+  void winnerDialogue(String win) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("GAME OVER"),
+          content: Text("$win is the Winner !!!!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  isclicked = List.generate(9, (_) => false);
+                  values = List.generate(9, (_) => null);
+                  winner = null;
+                  moveOrder.clear();
+                  winningLine = [];
+                  winnercheck = false;
+                  draw = false;
+                  turn = "";
+                  drawCount = 0;
+                  player1 = "";
+                  player2 = "";
+                  isTurnOf = true;
+                  gameStarted = false;
+                  xCount = 0;
+                  oCount = 0;
+                });
+                Navigator.pop(context);
+              },
+              child: Center(child: Text("Play Again")),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +245,13 @@ class _TicTacToeState extends State<TicTacToe> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
+              ),
+
+              Center(
+                child: Text(
+                  "Draw - $drawCount ",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
               SizedBox(height: 20),
               Center(
@@ -265,24 +317,6 @@ class _TicTacToeState extends State<TicTacToe> {
                                                 switchTurn ??= values[index];
                                               }
 
-                                              // If the grid is full, remove the oldest move
-                                              // else if (moveOrder.length >= 7) {
-                                              //   int oldest = moveOrder.removeAt(
-                                              //     0,
-                                              //   );
-                                              //   values[oldest] = null;
-                                              //   isclicked[oldest] = false;
-
-                                              //   // Place the new move
-                                              //   values[index] =
-                                              //       isTurnOf
-                                              //           ? player1
-                                              //           : player2;
-                                              //   isclicked[index] = true;
-                                              //   moveOrder.add(index);
-                                              // }
-
-                                              // Toggle turn
                                               isTurnOf = !isTurnOf;
                                               turn =
                                                   isTurnOf ? player1 : player2;
@@ -299,7 +333,7 @@ class _TicTacToeState extends State<TicTacToe> {
                                               // update points
                                               if (winner != null &&
                                                   !winnercheck) {
-                                                UpdateWinnerCount();
+                                                updateWinnerCount();
                                                 winnercheck = true;
                                               }
 
@@ -309,6 +343,8 @@ class _TicTacToeState extends State<TicTacToe> {
                                                     (v) => v != null,
                                                   )) {
                                                 draw = true;
+                                                drawCount++;
+                                                updateWinnerCount();
                                               }
                                             });
                                           },
@@ -402,6 +438,7 @@ class _TicTacToeState extends State<TicTacToe> {
                     isTurnOf = true;
                     gameStarted = false;
                     xCount = 0;
+                    drawCount = 0;
                     oCount = 0;
                   });
                 },
