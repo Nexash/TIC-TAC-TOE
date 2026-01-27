@@ -23,7 +23,8 @@ class TicTacToeLogic {
   List<int> drawLine = List.generate(9, (index) => index); // all cells
   bool draw = false;
   List<int>? winningLine;
-  bool gameStarted = false;
+  bool normalgameStarted = false;
+  bool bO3gameStarted = false;
 
   List<List<int>> winningLines = [
     [0, 1, 2],
@@ -72,7 +73,8 @@ class TicTacToeLogic {
     player1 = "";
     player2 = "";
     isTurnOf = true;
-    gameStarted = false;
+    normalgameStarted = false;
+    bO3gameStarted = false;
     xCount = 0;
     drawCount = 0;
     oCount = 0;
@@ -116,28 +118,36 @@ class TicTacToeLogic {
   void Function()? onDraw;
 
   void updateWinnerCount() {
-    if (winner == "X") {
-      xCount++;
-    } else if (winner == "O") {
-      oCount++;
-    }
-    if (xCount == 2) {
-      onWinner?.call("X");
-    } else if (oCount == 2) {
-      onWinner?.call("O");
-    }
-    if (drawCount == 3) {
-      onDraw?.call();
-    }
-    if (xCount == 1 && oCount == 1 && drawCount == 1) {
-      onDraw?.call();
-    }
-    if (drawCount == 2) {
-      if (xCount == 0 && oCount == 1) {
+    if (normalgameStarted) {
+      if (winner != null) {
+        onWinner?.call("$winner");
+      } else if (draw) {
+        onDraw?.call();
+      }
+    } else {
+      if (winner == "X") {
+        xCount++;
+      } else if (winner == "O") {
+        oCount++;
+      }
+      if (xCount == 2) {
+        onWinner?.call("X");
+      } else if (oCount == 2) {
         onWinner?.call("O");
       }
-      if (oCount == 0 && xCount == 1) {
-        onWinner?.call("X");
+      if (drawCount == 3) {
+        onDraw?.call();
+      }
+      if (xCount == 1 && oCount == 1 && drawCount == 1) {
+        onDraw?.call();
+      }
+      if (drawCount == 2) {
+        if (xCount == 0 && oCount == 1) {
+          onWinner?.call("O");
+        }
+        if (oCount == 0 && xCount == 1) {
+          onWinner?.call("X");
+        }
       }
     }
   }
@@ -155,7 +165,8 @@ class TicTacToeLogic {
                 player1 = "X";
                 player2 = "O";
                 turn = player1;
-                gameStarted = true;
+                bO3gameStarted = true;
+
                 updateState();
 
                 Navigator.pop(context);
@@ -167,7 +178,46 @@ class TicTacToeLogic {
                 player1 = "O";
                 player2 = "X";
                 turn = player1;
-                gameStarted = true;
+                bO3gameStarted = true;
+                updateState();
+
+                Navigator.pop(context);
+              },
+              child: const Text("O"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void shownormalSymbolDialog(Function updateState, BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Choose 1st player"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                player1 = "X";
+                player2 = "O";
+                turn = player1;
+                normalgameStarted = true;
+
+                updateState();
+
+                Navigator.pop(context);
+              },
+              child: const Text("X"),
+            ),
+            TextButton(
+              onPressed: () {
+                player1 = "O";
+                player2 = "X";
+                turn = player1;
+                normalgameStarted = true;
                 updateState();
 
                 Navigator.pop(context);
@@ -200,25 +250,32 @@ class TicTacToeLogic {
     return null;
   }
 
-  void drawDialogueHelper() {
-    isclicked = List.generate(9, (_) => false);
-    values = List.generate(9, (_) => null);
-    winner = null;
-    moveOrder.clear();
-    winningLine = [];
-    winnercheck = false;
-    draw = false;
-    turn = "";
-    player1 = "";
-    player2 = "";
-    isTurnOf = true;
-    gameStarted = false;
-    xCount = 0;
-    oCount = 0;
-    drawCount = 0;
-  }
+  // void drawDialogueHelper() {
+  //   isclicked = List.generate(9, (_) => false);
+  //   values = List.generate(9, (_) => null);
+  //   winner = null;
+  //   moveOrder.clear();
+  //   winningLine = [];
+  //   winnercheck = false;
+  //   draw = false;
+  //   // Decide who starts next round based on last roundStarter
+  //   if (switchTurn == player1) {
+  //     // If player1 started last round, player2 starts this round
+  //     isTurnOf = false;
+  //     turn = player2;
+  //   } else {
+  //     // If player2 started last round, player1 starts this round
+  //     isTurnOf = true;
+  //     turn = player1;
+  //   }
+  //   switchTurn = null;
 
-  void winnerDialogueHelper() {
+  //   xCount = 0;
+  //   oCount = 0;
+  //   drawCount = 0;
+  // }
+
+  void dialogueHelper() {
     isclicked = List.generate(9, (_) => false);
     values = List.generate(9, (_) => null);
     winner = null;
@@ -226,13 +283,20 @@ class TicTacToeLogic {
     winningLine = [];
     winnercheck = false;
     draw = false;
-    turn = "";
-    drawCount = 0;
-    player1 = "";
-    player2 = "";
-    isTurnOf = true;
-    gameStarted = false;
+    // Decide who starts next round based on last roundStarter
+    if (switchTurn == player1) {
+      // If player1 started last round, player2 starts this round
+      isTurnOf = false;
+      turn = player2;
+    } else {
+      // If player2 started last round, player1 starts this round
+      isTurnOf = true;
+      turn = player1;
+    }
+    switchTurn = null;
+
     xCount = 0;
     oCount = 0;
+    drawCount = 0;
   }
 }

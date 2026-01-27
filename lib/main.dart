@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tik_tac_toe/HomeScreen.dart';
+import 'package:tik_tac_toe/BestOfThree/bestofthreeXO.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
           seedColor: const Color.fromARGB(255, 160, 150, 177),
         ),
       ),
-      home: Homescreen(),
+      home: TicTacToe(),
     );
   }
 }

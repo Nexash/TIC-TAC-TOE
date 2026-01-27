@@ -30,19 +30,24 @@ class _TicTacToeState extends State<TicTacToe> {
             "Congratulations ${logic.winner}",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          ElevatedButton(
-            onPressed: () {
-              logic.nextRound(() => setState(() {}));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF41644A),
-              fixedSize: Size(150, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+          logic.normalgameStarted
+              ? SizedBox(width: 1)
+              : ElevatedButton(
+                onPressed: () {
+                  logic.nextRound(() => setState(() {}));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF41644A),
+                  fixedSize: Size(150, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  "Next Round",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-            child: Text("Next Round", style: TextStyle(color: Colors.white)),
-          ),
         ],
       );
     } else if (logic.draw) {
@@ -67,7 +72,7 @@ class _TicTacToeState extends State<TicTacToe> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  logic.drawDialogueHelper();
+                  logic.dialogueHelper();
                 });
 
                 Navigator.of(context).pop();
@@ -91,7 +96,7 @@ class _TicTacToeState extends State<TicTacToe> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  logic.winnerDialogueHelper();
+                  logic.dialogueHelper();
                 });
 
                 Navigator.pop(context);
@@ -116,25 +121,39 @@ class _TicTacToeState extends State<TicTacToe> {
 
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Player (X) - ${logic.xCount} ",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "${logic.oCount} - Player (O)  ",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+              logic.bO3gameStarted
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Player (X) - ${logic.xCount} ",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "${logic.oCount} - Player (O)  ",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                  : SizedBox(height: 1),
 
               Center(
-                child: Text(
-                  "Draw - ${logic.drawCount} ",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                child:
+                    logic.bO3gameStarted
+                        ? Text(
+                          "Draw - ${logic.drawCount} ",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                        : Text(""),
               ),
               SizedBox(height: 20),
               Center(
@@ -149,7 +168,7 @@ class _TicTacToeState extends State<TicTacToe> {
                 color: Color(0xFF41644A),
                 height: 400,
                 child:
-                    logic.gameStarted
+                    logic.bO3gameStarted || logic.normalgameStarted
                         ? GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
@@ -208,49 +227,69 @@ class _TicTacToeState extends State<TicTacToe> {
                             );
                           },
                         )
-                        : Center(
-                          child: ElevatedButton(
-                            onPressed:
-                                () => logic.showSymbolDialog(
-                                  () => setState(() {}),
-                                  context,
-                                ),
-                            child: Text("Start"),
-                          ),
+                        : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: ElevatedButton(
+                                onPressed:
+                                    () => logic.shownormalSymbolDialog(
+                                      () => setState(() {}),
+                                      context,
+                                    ),
+                                child: Text("ShowDown"),
+                              ),
+                            ),
+                            Center(
+                              child: ElevatedButton(
+                                onPressed:
+                                    () => logic.showSymbolDialog(
+                                      () => setState(() {}),
+                                      context,
+                                    ),
+                                child: Text("Start Best of 3"),
+                              ),
+                            ),
+                          ],
                         ),
               ),
 
               SizedBox(height: 20),
-              Row(
-                children: [
-                  Text("Its turn :", style: TextStyle(fontSize: 30)),
-                  SizedBox(width: 10),
-                  Text("${logic.turn} ", style: TextStyle(fontSize: 30)),
-                ],
-              ),
+              logic.normalgameStarted || logic.bO3gameStarted
+                  ? Row(
+                    children: [
+                      Text("Its turn :", style: TextStyle(fontSize: 30)),
+
+                      SizedBox(width: 10),
+                      Text("${logic.turn} ", style: TextStyle(fontSize: 30)),
+                    ],
+                  )
+                  : Text(""),
 
               displayResult(),
               SizedBox(height: 20),
 
               SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  logic.restartGame(() {
-                    setState(() {});
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF41644A),
-                  fixedSize: Size(50, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Text(
-                  "Restart Game",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
+              logic.normalgameStarted || logic.bO3gameStarted
+                  ? ElevatedButton(
+                    onPressed: () {
+                      logic.restartGame(() {
+                        setState(() {});
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF41644A),
+                      fixedSize: Size(50, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      "Choose mode",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                  : SizedBox(height: 1),
             ],
           ),
         ),
