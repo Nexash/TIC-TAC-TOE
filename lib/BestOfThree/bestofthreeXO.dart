@@ -30,7 +30,7 @@ class _TicTacToeState extends State<TicTacToe> {
             "Congratulations ${logic.winner}",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          logic.normalgameStarted
+          logic.normalgameStarted || logic.infinitegameStarted
               ? SizedBox(width: 1)
               : ElevatedButton(
                 onPressed: () {
@@ -51,11 +51,34 @@ class _TicTacToeState extends State<TicTacToe> {
         ],
       );
     } else if (logic.draw) {
-      return Center(
-        child: Text(
-          "Its A Draw",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Center(
+            child: Text(
+              "Its A Draw",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          logic.normalgameStarted
+              ? SizedBox(width: 1)
+              : ElevatedButton(
+                onPressed: () {
+                  logic.nextRound(() => setState(() {}));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF41644A),
+                  fixedSize: Size(150, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  "Next Round",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+        ],
       );
     }
     return SizedBox();
@@ -121,10 +144,72 @@ class _TicTacToeState extends State<TicTacToe> {
 
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Text(
+                  "TIC TAC TOE",
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(height: 20),
+              logic.bO3gameStarted ||
+                      logic.normalgameStarted ||
+                      logic.infinitegameStarted
+                  ? Row(
+                    children: [
+                      Text(
+                        "Mode: ",
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      logic.normalgameStarted
+                          ? Text(
+                            "Show Down!!!",
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                          : logic.bO3gameStarted
+                          ? Text(
+                            "Best Of THREE!!!",
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                          : logic.infinitegameStarted
+                          ? Text(
+                            "Infinite Battle",
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                          : Text(""),
+                    ],
+                  )
+                  : Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          "Choose the Mode",
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+
               logic.bO3gameStarted
                   ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      SizedBox(height: 20),
                       Text(
                         "Player (X) - ${logic.xCount} ",
                         style: TextStyle(
@@ -146,29 +231,28 @@ class _TicTacToeState extends State<TicTacToe> {
               Center(
                 child:
                     logic.bO3gameStarted
-                        ? Text(
-                          "Draw - ${logic.drawCount} ",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        ? Column(
+                          children: [
+                            Text(
+                              "Draw - ${logic.drawCount} ",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                          ],
                         )
-                        : Text(""),
+                        : SizedBox(height: 1),
               ),
-              SizedBox(height: 20),
-              Center(
-                child: Text(
-                  "TIC TAC TOE",
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                ),
-              ),
-              SizedBox(height: 20),
 
               Container(
                 color: Color(0xFF41644A),
                 height: 400,
                 child:
-                    logic.bO3gameStarted || logic.normalgameStarted
+                    logic.bO3gameStarted ||
+                            logic.normalgameStarted ||
+                            logic.infinitegameStarted
                         ? GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
@@ -201,8 +285,9 @@ class _TicTacToeState extends State<TicTacToe> {
                                   highlightColor: Colors.transparent,
                                   onTap:
                                       logic.winner != null ||
+                                              logic.draw ||
                                               logic
-                                                  .draw //it gives false so null is not selected on second click the response is true so it selects null
+                                                  .isFlickering //it gives false so null is not selected on second click the response is true so it selects null
                                           ? null
                                           : () {
                                             if (logic.values[index] != null) {
@@ -213,12 +298,21 @@ class _TicTacToeState extends State<TicTacToe> {
                                             });
                                           },
                                   child: Center(
-                                    child: Text(
-                                      isClicked ? (value ?? "") : "",
-                                      style: TextStyle(
-                                        fontSize: 60,
-                                        fontWeight: FontWeight.bold,
-                                        color: textColor,
+                                    child: AnimatedOpacity(
+                                      opacity:
+                                          logic.flickerIndex == index
+                                              ? 0.2
+                                              : 1.0, // flicker condition
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
+                                      child: Text(
+                                        isClicked ? (value ?? "") : "",
+                                        style: TextStyle(
+                                          fontSize: 60,
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -230,32 +324,103 @@ class _TicTacToeState extends State<TicTacToe> {
                         : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Center(
-                              child: ElevatedButton(
-                                onPressed:
-                                    () => logic.shownormalSymbolDialog(
-                                      () => setState(() {}),
-                                      context,
+                            SizedBox(height: 50),
+                            Expanded(
+                              child: SizedBox(
+                                width: 300,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color.fromARGB(
+                                      255,
+                                      147,
+                                      201,
+                                      159,
                                     ),
-                                child: Text("ShowDown"),
+                                  ),
+                                  onPressed:
+                                      () => logic.shownormalSymbolDialog(
+                                        () => setState(() {}),
+                                        context,
+                                      ),
+                                  child: Text(
+                                    "ShowDown",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                            Center(
-                              child: ElevatedButton(
-                                onPressed:
-                                    () => logic.showSymbolDialog(
-                                      () => setState(() {}),
-                                      context,
+                            SizedBox(height: 50),
+                            Expanded(
+                              child: SizedBox(
+                                width: 300,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color.fromARGB(
+                                      255,
+                                      147,
+                                      201,
+                                      159,
                                     ),
-                                child: Text("Start Best of 3"),
+                                  ),
+                                  onPressed:
+                                      () => logic.showSymbolDialog(
+                                        () => setState(() {}),
+                                        context,
+                                      ),
+                                  child: Text(
+                                    "Best of 3",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
+                            SizedBox(height: 50),
+                            Expanded(
+                              child: SizedBox(
+                                width: 300,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color.fromARGB(
+                                      255,
+                                      147,
+                                      201,
+                                      159,
+                                    ),
+                                  ),
+                                  onPressed:
+                                      () => logic.showInfiniteSymbolDialog(
+                                        () => setState(() {}),
+                                        context,
+                                      ),
+
+                                  child: Text(
+                                    "Infinite",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 50),
                           ],
                         ),
               ),
 
               SizedBox(height: 20),
-              logic.normalgameStarted || logic.bO3gameStarted
+              logic.normalgameStarted ||
+                      logic.bO3gameStarted ||
+                      logic.infinitegameStarted
                   ? Row(
                     children: [
                       Text("Its turn :", style: TextStyle(fontSize: 30)),
@@ -270,7 +435,9 @@ class _TicTacToeState extends State<TicTacToe> {
               SizedBox(height: 20),
 
               SizedBox(height: 10),
-              logic.normalgameStarted || logic.bO3gameStarted
+              logic.normalgameStarted ||
+                      logic.bO3gameStarted ||
+                      logic.infinitegameStarted
                   ? ElevatedButton(
                     onPressed: () {
                       logic.restartGame(() {

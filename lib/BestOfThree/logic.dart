@@ -15,6 +15,9 @@ class TicTacToeLogic {
   String? winner;
   String? firstMove;
 
+  int? flickerIndex;
+  bool isFlickering = false;
+
   bool winnercheck = false;
   int xCount = 0;
   int oCount = 0;
@@ -25,6 +28,7 @@ class TicTacToeLogic {
   List<int>? winningLine;
   bool normalgameStarted = false;
   bool bO3gameStarted = false;
+  bool infinitegameStarted = false;
 
   List<List<int>> winningLines = [
     [0, 1, 2],
@@ -72,9 +76,12 @@ class TicTacToeLogic {
     turn = "";
     player1 = "";
     player2 = "";
+    flickerIndex = null;
+    isFlickering = false;
     isTurnOf = true;
     normalgameStarted = false;
     bO3gameStarted = false;
+    infinitegameStarted = false;
     xCount = 0;
     drawCount = 0;
     oCount = 0;
@@ -90,6 +97,14 @@ class TicTacToeLogic {
       isclicked[index] = true;
       moveOrder.add(index);
       switchTurn ??= values[index];
+    }
+    if (infinitegameStarted) {
+      if (moveOrder.length == 7) {
+        int firstIndex = moveOrder.removeAt(0);
+        values[firstIndex] = null;
+        isclicked[firstIndex] = false;
+        flickerIndex = moveOrder[0];
+      }
     }
 
     isTurnOf = !isTurnOf;
@@ -118,13 +133,13 @@ class TicTacToeLogic {
   void Function()? onDraw;
 
   void updateWinnerCount() {
-    if (normalgameStarted) {
+    if (normalgameStarted || infinitegameStarted) {
       if (winner != null) {
         onWinner?.call("$winner");
       } else if (draw) {
         onDraw?.call();
       }
-    } else {
+    } else if (bO3gameStarted) {
       if (winner == "X") {
         xCount++;
       } else if (winner == "O") {
@@ -166,6 +181,45 @@ class TicTacToeLogic {
                 player2 = "O";
                 turn = player1;
                 bO3gameStarted = true;
+
+                updateState();
+
+                Navigator.pop(context);
+              },
+              child: const Text("X"),
+            ),
+            TextButton(
+              onPressed: () {
+                player1 = "O";
+                player2 = "X";
+                turn = player1;
+                bO3gameStarted = true;
+                updateState();
+
+                Navigator.pop(context);
+              },
+              child: const Text("O"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showInfiniteSymbolDialog(Function updateState, BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Choose 1st player"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                player1 = "X";
+                player2 = "O";
+                turn = player1;
+                infinitegameStarted = true;
 
                 updateState();
 
@@ -250,31 +304,6 @@ class TicTacToeLogic {
     return null;
   }
 
-  // void drawDialogueHelper() {
-  //   isclicked = List.generate(9, (_) => false);
-  //   values = List.generate(9, (_) => null);
-  //   winner = null;
-  //   moveOrder.clear();
-  //   winningLine = [];
-  //   winnercheck = false;
-  //   draw = false;
-  //   // Decide who starts next round based on last roundStarter
-  //   if (switchTurn == player1) {
-  //     // If player1 started last round, player2 starts this round
-  //     isTurnOf = false;
-  //     turn = player2;
-  //   } else {
-  //     // If player2 started last round, player1 starts this round
-  //     isTurnOf = true;
-  //     turn = player1;
-  //   }
-  //   switchTurn = null;
-
-  //   xCount = 0;
-  //   oCount = 0;
-  //   drawCount = 0;
-  // }
-
   void dialogueHelper() {
     isclicked = List.generate(9, (_) => false);
     values = List.generate(9, (_) => null);
@@ -283,6 +312,8 @@ class TicTacToeLogic {
     winningLine = [];
     winnercheck = false;
     draw = false;
+    flickerIndex = null;
+    isFlickering = false;
     // Decide who starts next round based on last roundStarter
     if (switchTurn == player1) {
       // If player1 started last round, player2 starts this round
