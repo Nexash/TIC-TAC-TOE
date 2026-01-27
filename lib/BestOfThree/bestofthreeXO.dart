@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tik_tac_toe/BestOfThree/logic.dart';
+import 'package:tik_tac_toe/enum.dart';
 
 class TicTacToe extends StatefulWidget {
   const TicTacToe({super.key});
@@ -187,7 +188,7 @@ class _TicTacToeState extends State<TicTacToe> {
                               fontWeight: FontWeight.bold,
                             ),
                           )
-                          : Text(""),
+                          : SizedBox.shrink(),
                     ],
                   )
                   : Center(
@@ -204,57 +205,92 @@ class _TicTacToeState extends State<TicTacToe> {
                       ],
                     ),
                   ),
+              SizedBox(height: 20),
 
               logic.bO3gameStarted
-                  ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(height: 20),
-                      Text(
-                        "Player (X) - ${logic.xCount} ",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "${logic.oCount} - Player (O)  ",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  )
-                  : SizedBox(height: 1),
-
-              Center(
-                child:
-                    logic.bO3gameStarted
-                        ? Column(
-                          children: [
-                            Text(
-                              "Draw - ${logic.drawCount} ",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                  ? Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 71, 155, 92),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Player (X) - ${logic.xCount} ",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 20),
-                          ],
-                        )
-                        : SizedBox(height: 1),
-              ),
+                              Text(
+                                "Player (O) - ${logic.oCount}",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                "Draw - ${logic.drawCount} ",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          logic.normalgameStarted ||
+                                  logic.bO3gameStarted ||
+                                  logic.infinitegameStarted
+                              ? Container(
+                                decoration: BoxDecoration(
+                                  color: Color.fromARGB(255, 147, 201, 159),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        "Turn",
+                                        style: TextStyle(fontSize: 27),
+                                      ),
 
+                                      SizedBox(width: 5),
+                                      Text(
+                                        "${logic.turn} ",
+                                        style: TextStyle(fontSize: 27),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              : SizedBox.shrink(),
+                        ],
+                      ),
+                    ),
+                  )
+                  : SizedBox.shrink(),
+              SizedBox(height: 15),
               Container(
-                color: Color(0xFF41644A),
-                height: 400,
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 71, 155, 92), // put color here
+                  borderRadius: BorderRadius.circular(40), // border radius
+                ),
+                height: 380,
                 child:
                     logic.bO3gameStarted ||
                             logic.normalgameStarted ||
                             logic.infinitegameStarted
                         ? GridView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
+                          physics: NeverScrollableScrollPhysics(),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
@@ -285,17 +321,18 @@ class _TicTacToeState extends State<TicTacToe> {
                                   highlightColor: Colors.transparent,
                                   onTap:
                                       logic.winner != null ||
-                                              logic.draw ||
                                               logic
-                                                  .isFlickering //it gives false so null is not selected on second click the response is true so it selects null
+                                                  .draw //it gives false so null is not selected on second click the response is true so it selects null
                                           ? null
                                           : () {
                                             if (logic.values[index] != null) {
                                               return;
                                             }
-                                            setState(() {
-                                              logic.gridlogic(index);
-                                            });
+
+                                            logic.gridlogic(
+                                              index,
+                                              () => setState(() {}),
+                                            );
                                           },
                                   child: Center(
                                     child: AnimatedOpacity(
@@ -341,9 +378,10 @@ class _TicTacToeState extends State<TicTacToe> {
                                       () => logic.shownormalSymbolDialog(
                                         () => setState(() {}),
                                         context,
+                                        Modepassing.showDown,
                                       ),
                                   child: Text(
-                                    "ShowDown",
+                                    "Show Down",
                                     style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.black,
@@ -367,9 +405,10 @@ class _TicTacToeState extends State<TicTacToe> {
                                     ),
                                   ),
                                   onPressed:
-                                      () => logic.showSymbolDialog(
+                                      () => logic.shownormalSymbolDialog(
                                         () => setState(() {}),
                                         context,
+                                        Modepassing.bo3,
                                       ),
                                   child: Text(
                                     "Best of 3",
@@ -396,9 +435,10 @@ class _TicTacToeState extends State<TicTacToe> {
                                     ),
                                   ),
                                   onPressed:
-                                      () => logic.showInfiniteSymbolDialog(
+                                      () => logic.shownormalSymbolDialog(
                                         () => setState(() {}),
                                         context,
+                                        Modepassing.infinite,
                                       ),
 
                                   child: Text(
@@ -416,20 +456,6 @@ class _TicTacToeState extends State<TicTacToe> {
                           ],
                         ),
               ),
-
-              SizedBox(height: 20),
-              logic.normalgameStarted ||
-                      logic.bO3gameStarted ||
-                      logic.infinitegameStarted
-                  ? Row(
-                    children: [
-                      Text("Its turn :", style: TextStyle(fontSize: 30)),
-
-                      SizedBox(width: 10),
-                      Text("${logic.turn} ", style: TextStyle(fontSize: 30)),
-                    ],
-                  )
-                  : Text(""),
 
               displayResult(),
               SizedBox(height: 20),
@@ -456,7 +482,7 @@ class _TicTacToeState extends State<TicTacToe> {
                       style: TextStyle(color: Colors.white),
                     ),
                   )
-                  : SizedBox(height: 1),
+                  : SizedBox.shrink(),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:tik_tac_toe/enum.dart';
 
 class TicTacToeLogic {
   List<bool> isclicked = List.generate(9, (_) => false);
@@ -16,14 +17,12 @@ class TicTacToeLogic {
   String? firstMove;
 
   int? flickerIndex;
-  bool isFlickering = false;
 
   bool winnercheck = false;
   int xCount = 0;
   int oCount = 0;
   int drawCount = 0;
 
-  List<int> drawLine = List.generate(9, (index) => index); // all cells
   bool draw = false;
   List<int>? winningLine;
   bool normalgameStarted = false;
@@ -77,7 +76,7 @@ class TicTacToeLogic {
     player1 = "";
     player2 = "";
     flickerIndex = null;
-    isFlickering = false;
+    // isFlickering = false;
     isTurnOf = true;
     normalgameStarted = false;
     bO3gameStarted = false;
@@ -89,8 +88,9 @@ class TicTacToeLogic {
   }
 
   void Function()? onUpdate;
+  void Function()? updateUI;
 
-  void gridlogic(int index) {
+  void gridlogic(int index, Function updateUI) {
     // If the cell is empty, normal click
     if (values[index] == null) {
       values[index] = isTurnOf ? player1 : player2;
@@ -98,8 +98,13 @@ class TicTacToeLogic {
       moveOrder.add(index);
       switchTurn ??= values[index];
     }
+
     if (infinitegameStarted) {
-      if (moveOrder.length == 7) {
+      if (moveOrder.length == 6) {
+        flickerIndex = moveOrder[0];
+        updateUI();
+      }
+      if (moveOrder.length > 6) {
         int firstIndex = moveOrder.removeAt(0);
         values[firstIndex] = null;
         isclicked[firstIndex] = false;
@@ -127,6 +132,7 @@ class TicTacToeLogic {
       drawCount++;
       updateWinnerCount();
     }
+    updateUI.call();
   }
 
   void Function(String)? onWinner;
@@ -167,7 +173,11 @@ class TicTacToeLogic {
     }
   }
 
-  void showSymbolDialog(Function updateState, BuildContext context) {
+  void shownormalSymbolDialog(
+    Function updateState,
+    BuildContext context,
+    Modepassing modepassed,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -180,7 +190,13 @@ class TicTacToeLogic {
                 player1 = "X";
                 player2 = "O";
                 turn = player1;
-                bO3gameStarted = true;
+                modepassed == Modepassing.showDown
+                    ? normalgameStarted = true
+                    : modepassed == Modepassing.bo3
+                    ? bO3gameStarted = true
+                    : modepassed == Modepassing.infinite
+                    ? infinitegameStarted = true
+                    : Navigator.pop(context);
 
                 updateState();
 
@@ -193,85 +209,13 @@ class TicTacToeLogic {
                 player1 = "O";
                 player2 = "X";
                 turn = player1;
-                bO3gameStarted = true;
-                updateState();
-
-                Navigator.pop(context);
-              },
-              child: const Text("O"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showInfiniteSymbolDialog(Function updateState, BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Choose 1st player"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                player1 = "X";
-                player2 = "O";
-                turn = player1;
-                infinitegameStarted = true;
-
-                updateState();
-
-                Navigator.pop(context);
-              },
-              child: const Text("X"),
-            ),
-            TextButton(
-              onPressed: () {
-                player1 = "O";
-                player2 = "X";
-                turn = player1;
-                bO3gameStarted = true;
-                updateState();
-
-                Navigator.pop(context);
-              },
-              child: const Text("O"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void shownormalSymbolDialog(Function updateState, BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Choose 1st player"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                player1 = "X";
-                player2 = "O";
-                turn = player1;
-                normalgameStarted = true;
-
-                updateState();
-
-                Navigator.pop(context);
-              },
-              child: const Text("X"),
-            ),
-            TextButton(
-              onPressed: () {
-                player1 = "O";
-                player2 = "X";
-                turn = player1;
-                normalgameStarted = true;
+                modepassed == Modepassing.showDown
+                    ? normalgameStarted = true
+                    : modepassed == Modepassing.bo3
+                    ? bO3gameStarted = true
+                    : modepassed == Modepassing.infinite
+                    ? infinitegameStarted = true
+                    : Navigator.pop(context);
                 updateState();
 
                 Navigator.pop(context);
@@ -313,7 +257,7 @@ class TicTacToeLogic {
     winnercheck = false;
     draw = false;
     flickerIndex = null;
-    isFlickering = false;
+    // isFlickering = false;
     // Decide who starts next round based on last roundStarter
     if (switchTurn == player1) {
       // If player1 started last round, player2 starts this round
