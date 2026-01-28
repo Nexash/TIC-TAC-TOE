@@ -139,12 +139,12 @@ class TicTacToeLogic {
   void Function()? onDraw;
 
   void updateWinnerCount() {
-    if (normalgameStarted || infinitegameStarted) {
-      if (winner != null) {
-        onWinner?.call("$winner");
-      } else if (draw) {
-        onDraw?.call();
-      }
+    if (infinitegameStarted) {
+      // if (winner != null) {
+      //   onWinner?.call("$winner");
+      // } else if (draw) {
+      //   onDraw?.call();
+      // }
     } else if (bO3gameStarted) {
       if (winner == "X") {
         xCount++;
@@ -183,44 +183,94 @@ class TicTacToeLogic {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Choose 1st player"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                player1 = "X";
-                player2 = "O";
-                turn = player1;
-                modepassed == Modepassing.showDown
-                    ? normalgameStarted = true
-                    : modepassed == Modepassing.bo3
-                    ? bO3gameStarted = true
-                    : modepassed == Modepassing.infinite
-                    ? infinitegameStarted = true
-                    : Navigator.pop(context);
-
-                updateState();
-
-                Navigator.pop(context);
-              },
-              child: const Text("X"),
+          backgroundColor: const Color.fromARGB(233, 255, 255, 255),
+          actionsAlignment: MainAxisAlignment.center,
+          title: Center(
+            child: Text(
+              "Choose 1st player",
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            TextButton(
-              onPressed: () {
-                player1 = "O";
-                player2 = "X";
-                turn = player1;
-                modepassed == Modepassing.showDown
-                    ? normalgameStarted = true
-                    : modepassed == Modepassing.bo3
-                    ? bO3gameStarted = true
-                    : modepassed == Modepassing.infinite
-                    ? infinitegameStarted = true
-                    : Navigator.pop(context);
-                updateState();
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    player1 = "X";
+                    player2 = "O";
+                    turn = player1;
+                    modepassed == Modepassing.showDown
+                        ? normalgameStarted = true
+                        : modepassed == Modepassing.bo3
+                        ? bO3gameStarted = true
+                        : modepassed == Modepassing.infinite
+                        ? infinitegameStarted = true
+                        : Navigator.pop(context);
 
-                Navigator.pop(context);
-              },
-              child: const Text("O"),
+                    updateState();
+
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Color(0xFF41644A),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 5,
+                      ),
+                      child: Text(
+                        "X",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    player1 = "O";
+                    player2 = "X";
+                    turn = player1;
+                    modepassed == Modepassing.showDown
+                        ? normalgameStarted = true
+                        : modepassed == Modepassing.bo3
+                        ? bO3gameStarted = true
+                        : modepassed == Modepassing.infinite
+                        ? infinitegameStarted = true
+                        : Navigator.pop(context);
+                    updateState();
+
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Color(0xFF41644A),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 5,
+                      ),
+                      child: Text(
+                        "O",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
